@@ -9,6 +9,8 @@ WINHEIGHT = 600
 #       R   G  B
 BLACK = (0, 0, 0)
 LRED = (255, 50, 50)
+LGREEN = (50, 255, 50)
+LBLUE = (50, 50, 255)
 DRED = (255, 0, 0)
 
 
@@ -16,7 +18,7 @@ DRED = (255, 0, 0)
 
 
 def main():
-    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, candidate, stafferA, stafferB, team, batArea, batAction
+    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, candidate, stafferA, stafferB, team, batArea, batAction, enemyTeam, combatComplete
     pygame.init()
     DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
     pygame.display.set_caption('Demagogues & Democracy')
@@ -40,6 +42,9 @@ def main():
 
     team = []
 
+    #Enemy Team
+    enemyTeam = ['b1', 'b2', 'b3']
+
     #Location of Campaign
     campLoc = 'Harrisburg'
 
@@ -52,9 +57,11 @@ def main():
     #Combat Prep Info
     batArea = 'none'
     batAction = 'none'
+    combatComplete = False
 
     #Primary Game Loop
     while True:
+        DISPLAYSURF.fill(BLACK)
         if gameState == 'title':
             gameState = titleScene()
         elif gameState == 'character select':
@@ -77,7 +84,8 @@ def main():
             batArea = changes[1]
             batAction = changes[2]
         elif gameState == 'combat':
-            combatScene()
+            combatScene(batArea, batAction, team, enemyTeam)
+            combatComplete = True
         elif gameState == 'end of week':
             weekScene()
         elif gameState == 'end':
@@ -161,6 +169,67 @@ def orderSwap(teamList, a, b):
     teamList[b] = holdA
 
     return teamList
+
+def combatLoop(playerObj, enemyObj):
+    BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
+
+    #Player Team Icon
+    playerX = 110
+    playerY = 300
+    playerDirection = 'right'
+    playerHealth = 15
+    playerAD = 3
+
+    #Enemy Team Icon
+    enemyX = 670
+    enemyY = 300
+    enemyHealth = 15
+    enemyAD = 2
+
+    while True: 
+        DISPLAYSURF.fill(BLACK)
+        PLAYER = [(playerX, playerY), (100, 100), '']
+        ENEMY = [(enemyX, enemyY), (100, 100), '']
+
+        healthStr = str(playerHealth)
+        enemyStr = str(enemyHealth)
+
+        if playerDirection == 'right':
+            if playerHealth > 0 and enemyHealth > 0:
+                playerX += 5
+                enemyX -= 5
+                if playerX == 340:
+                    playerHealth -= enemyAD
+                    enemyHealth -= playerAD
+                    if playerHealth > 0 and enemyHealth > 0:
+                        playerDirection = 'left'
+        elif playerDirection == 'left':
+            playerX -= 5
+            enemyX += 5
+            if playerX == 110:
+                playerDirection = 'right'
+    
+
+        if playerHealth > 0:
+            createButton(BUTTONFONT, healthStr, BLACK, LRED, PLAYER[0], PLAYER[1])
+        else:
+            break
+
+        if enemyHealth > 0:
+            createButton(BUTTONFONT, enemyStr, BLACK, LGREEN, ENEMY[0], ENEMY[1])
+        else:
+            break
+
+
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+    
+    if playerHealth > 0 and enemyHealth < 1:
+        return 'player'
+    elif playerHealth < 1 and enemyHealth > 0:
+        return 'enemy'
+    elif playerHealth < 1 and enemyHealth < 1:
+        return 'tie'
 
 
 
@@ -567,8 +636,25 @@ def areaScene():
     return newState, area, action
 
 
-def combatScene():
-    a = 0
+def combatScene(area, action, playerTeam, eTeam):
+    areaMod = 0
+    actMod = 0
+    itr = 0
+    playerScore = 0
+    enemyScore = 0
+    result = ''
+    if combatComplete == False:
+        for a in playerTeam:
+            result = combatLoop(a, eTeam[itr])
+            if result == 'player':
+                playerScore += 1
+            elif result == 'enemy':
+                enemyScore += 1
+            elif result == 'tie':
+                pass
+            itr += 1
+            print(a)
+
 
 def weekScene():
     a = 0
