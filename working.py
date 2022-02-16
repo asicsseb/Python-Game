@@ -16,7 +16,7 @@ DRED = (255, 0, 0)
 
 
 def main():
-    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, candidate, stafferA, stafferB
+    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, candidate, stafferA, stafferB, team, batArea, batAction
     pygame.init()
     DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
     pygame.display.set_caption('Demagogues & Democracy')
@@ -38,6 +38,21 @@ def main():
     stafferA = 'none'
     stafferB = 'none'
 
+    team = []
+
+    #Location of Campaign
+    campLoc = 'Harrisburg'
+
+    #State of the race
+    support = 5
+
+    #Weeks left in campaign
+    weeks = 10
+
+    #Combat Prep Info
+    batArea = 'none'
+    batAction = 'none'
+
     #Primary Game Loop
     while True:
         if gameState == 'title':
@@ -51,10 +66,16 @@ def main():
             gameState = changes[0]
             stafferA = changes[1]
             stafferB = changes[2]
+            team = [candidate, stafferA, stafferB]
         elif gameState == 'team':
-            teamScene()
+            changes = teamScene(campLoc, support, weeks, team)
+            gameState = changes[0]
+            team = changes[1]
         elif gameState == 'area':
-            areaScene()
+            changes = areaScene()
+            gameState = changes[0]
+            batArea = changes[1]
+            batAction = changes[2]
         elif gameState == 'combat':
             combatScene()
         elif gameState == 'end of week':
@@ -99,6 +120,7 @@ def topLeft(button):
     tlY = cY - (height/2)
     return (tlX, tlY)
 
+#Returns a string within a button if the button is clicked
 def clickCheck(button, mX, mY):
     tL = topLeft(button)
     leftBound = tL[0]
@@ -114,6 +136,31 @@ def clickCheck(button, mX, mY):
             return 'oops'
     else:
         return 'oops'
+
+#Returns True or False for if a button in a list is clicked
+def clickCheckB(button, mX, mY):
+    tL = topLeft(button)
+    leftBound = tL[0]
+    rightBound = leftBound+button[1][0]
+    upBound = tL[1]
+    botBound = upBound+button[1][1]
+
+    if mX >= leftBound and mX <= rightBound:
+        if mY >= upBound and mY <= botBound:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+#Switches positions of elements in list
+def orderSwap(teamList, a, b):
+    holdA = teamList[a]
+    holdB = teamList[b]
+    teamList[a] = holdB
+    teamList[b] = holdA
+
+    return teamList
 
 
 
@@ -146,12 +193,8 @@ def titleScene():
                 break
             else:
                 newState = 'title'
-            print(newState)
     return newState
         
-    
-
-
 def charScene():
 
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
@@ -219,7 +262,6 @@ def charScene():
 
     main.mouseClicked = False
     return newState, selection
-
 
 def draftScene():
 
@@ -291,14 +333,13 @@ def draftScene():
                 break
         
         for button in cbuttonList2:
-            print("This is running")
             holder = clickCheck(button, mX, mY)
             if holder != 'oops':
                 staff2 = holder
                 break
 
         newState = clickCheck(NEXTBUTTON, mX, mY)
-        if newState != 'oops':
+        if newState != 'oops' and staff1 != 'none' and staff2 != 'none':
             pass
         else: newState = 'draft'
 
@@ -330,11 +371,201 @@ def draftScene():
     main.mouseClicked = False
     return newState, staff1, staff2
 
-def teamScene():
-    a = 0
+def teamScene(loc, raceDiff, weeks, teamList):
+    newState = 'team'
+
+    #Staff Selection Title
+    fontObj = pygame.font.Font('freesansbold.ttf', 48)
+    textSurfaceObj = fontObj.render('Campaign HQ', True, LRED)
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (400, 50)
+    
+    #Location Text
+    location = "Location: "+ loc
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
+    locationTextObj = infoFont.render(location, True, LRED)
+    locationRectObj = locationTextObj.get_rect()
+    locationRectObj.topleft = (100,100)
+
+    # Percent Support Text
+    raceStatus = f"Status of Race: {raceDiff}%"
+    supTextObj = infoFont.render(raceStatus, True, LRED)
+    supRectObj = supTextObj.get_rect()
+    supRectObj.topleft = (100,140)
+
+    # Weeks Left Text
+    weeksLeft = f"Weeks Left: {weeks}"
+    weeksTextObj = infoFont.render(weeksLeft, True, LRED)
+    weeksRectObj = weeksTextObj.get_rect()
+    weeksRectObj.topleft = (100,180)
+
+    #Team Slot Frames
+    BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
+    x = 400
+    y = 300
+
+    teamSpot1 = [(x-200,y), (100, 100), teamList[0]]
+    teamSpot2 = [(x, y), (100, 100), teamList[1]]
+    teamSpot3 = [(x+200, y), (100, 100), teamList[2]]
+    teambuttonList = []
+
+
+    leftRightFirst = [(305, y-25), (50,40), 'Swap']
+    leftRightSecond = [(505, y-25), (50, 40), 'Swap']
+
+    orderbuttonList = []
+
+    createButton(BUTTONFONT, leftRightFirst[2], BLACK, LRED, leftRightFirst[0], leftRightFirst[1])
+    orderbuttonList.append(leftRightFirst)
+    
+    createButton(BUTTONFONT, leftRightSecond[2], BLACK, LRED, leftRightSecond[0], leftRightSecond[1])
+    orderbuttonList.append(leftRightSecond)
+
+
+
+
+    DISPLAYSURF.fill(BLACK)
+    DISPLAYSURF.blit(textSurfaceObj, textRectObj)
+    DISPLAYSURF.blit(locationTextObj, locationRectObj)
+    DISPLAYSURF.blit(supTextObj, supRectObj)
+    DISPLAYSURF.blit(weeksTextObj, weeksRectObj)
+
+    createButton(BUTTONFONT, teamSpot1[2], BLACK, LRED, teamSpot1[0], teamSpot1[1])
+    teambuttonList.append(teamSpot1)
+
+    createButton(BUTTONFONT, teamSpot2[2], BLACK, LRED, teamSpot2[0], teamSpot2[1])
+    teambuttonList.append(teamSpot2)
+
+    createButton(BUTTONFONT, teamSpot3[2], BLACK, LRED, teamSpot3[0], teamSpot3[1])
+    teambuttonList.append(teamSpot3)
+
+    createButton(BUTTONFONT, leftRightFirst[2], BLACK, LRED, leftRightFirst[0], leftRightFirst[1])
+    orderbuttonList.append(leftRightFirst)
+    
+    createButton(BUTTONFONT, leftRightSecond[2], BLACK, LRED, leftRightSecond[0], leftRightSecond[1])
+    orderbuttonList.append(leftRightSecond)
+
+    #Next Button
+    NEXTBUTTON = [(400, 500), (240, 80), 'area']
+    createButton(BUTTONFONT, 'Next', BLACK, LRED, NEXTBUTTON[0], NEXTBUTTON[1])
+
+
+    #event handler
+    if mouseClicked == True:
+        for button in orderbuttonList:
+            clickedButton = clickCheckB(button, mX, mY)
+            if clickedButton == True:
+                if button == leftRightFirst:
+                    #logic to move #1 member to #2
+                    teamList = orderSwap(teamList, 0, 1)
+                    break
+                elif button == leftRightSecond:
+                    #logic to move #2 member to #3
+                    teamList = orderSwap(teamList, 1, 2)
+                    break
+        
+        newState = clickCheck(NEXTBUTTON, mX, mY)
+        if newState != 'oops':
+            pass
+        else: newState = 'team'
+    return [newState, teamList]
 
 def areaScene():
-    a = 0
+    newState = 'area'
+
+    #Staff Selection Title
+    fontObj = pygame.font.Font('freesansbold.ttf', 48)
+    textSurfaceObj = fontObj.render('Location/Action', True, LRED)
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (400, 50)
+
+    DISPLAYSURF.fill(BLACK)
+    DISPLAYSURF.blit(textSurfaceObj, textRectObj)
+
+    BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
+    areabuttonList = []
+    actionbuttonList = []
+
+    x = 400
+    y1 = 140
+    y2 = 260
+
+    AREAABUTTON = [(x-120,y1), (100, 100), 'areaA']
+    AREABBUTTON = [(x, y1), (100, 100), 'areaB']
+    AREACBUTTON = [(x+120, y1), (100, 100), 'areaC']
+
+    ACTIONABUTTON = [(x-120,y2), (100, 100), 'actionA']
+    ACTIONBBUTTON = [(x,y2), (100, 100), 'actionB']
+    ACTIONCBUTTON = [(x+120,y2), (100, 100), 'actionC']
+
+    areaFrame = [(x-80, 380), (100,100), ' ']
+    actionFrame = [(x+80, 380), (100, 100),' ']
+
+    area = batArea
+    action = batAction
+
+    createButton(BUTTONFONT, 'Area A', BLACK, LRED, AREAABUTTON[0], AREAABUTTON[1])
+    areabuttonList.append(AREAABUTTON)
+
+    createButton(BUTTONFONT, 'Area B', BLACK, LRED, AREABBUTTON[0], AREABBUTTON[1])
+    areabuttonList.append(AREABBUTTON)
+
+    createButton(BUTTONFONT, 'Area C', BLACK, LRED, AREACBUTTON[0], AREACBUTTON[1])
+    areabuttonList.append(AREACBUTTON)
+
+    createButton(BUTTONFONT, 'Action A', BLACK, LRED, ACTIONABUTTON[0], ACTIONABUTTON[1])
+    actionbuttonList.append(ACTIONABUTTON)
+
+    createButton(BUTTONFONT, 'Action B', BLACK, LRED, ACTIONBBUTTON[0], ACTIONBBUTTON[1])
+    actionbuttonList.append(ACTIONBBUTTON)
+
+    createButton(BUTTONFONT, 'Action C', BLACK, LRED, ACTIONCBUTTON[0], ACTIONCBUTTON[1])
+    actionbuttonList.append(ACTIONCBUTTON)
+
+    #Next Button
+    NEXTBUTTON = [(400, 500), (240, 80), 'combat']
+    createButton(BUTTONFONT, 'Next', BLACK, LRED, NEXTBUTTON[0], NEXTBUTTON[1])
+
+    #event handler
+    if mouseClicked == True:
+        for button in areabuttonList:
+            holder = clickCheck(button, mX, mY)
+            if holder != 'oops':
+                area = holder
+                print(area)
+                break
+        
+        for button in actionbuttonList:
+            holder = clickCheck(button, mX, mY)
+            if holder != 'oops':
+                action = holder
+                break
+
+        newState = clickCheck(NEXTBUTTON, mX, mY)
+        if newState != 'oops' and area != 'none' and action != 'none':
+            pass
+        else: newState = 'area'
+
+    if area == 'areaA':
+        areaFrame[2]= 'Area A'
+    elif area == 'areaB':
+        areaFrame[2]= 'Area B'
+    elif area == 'areaC':
+        areaFrame[2]= 'Area C'
+    
+    if action == 'actionA':
+        actionFrame[2]= 'Action A'
+    elif action == 'actionB':
+        actionFrame[2]= 'Action B'
+    elif action == 'actionC':
+        actionFrame[2]= 'Action C'
+
+    createButton(BUTTONFONT, areaFrame[2], BLACK, LRED, areaFrame[0], areaFrame[1])
+    createButton(BUTTONFONT, actionFrame[2], BLACK, LRED, actionFrame[0], actionFrame[1])
+
+    main.mouseClicked = False
+    return newState, area, action
+
 
 def combatScene():
     a = 0
