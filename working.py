@@ -18,7 +18,7 @@ DRED = (255, 0, 0)
 
 
 def main():
-    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, candidate, stafferA, stafferB, team, batArea, batAction, enemyTeam, combatComplete
+    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, weeks, candidate, stafferA, stafferB, team, support, batArea, batAction, enemyTeam, combatComplete, playerScore, enemyScore
     pygame.init()
     DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
     pygame.display.set_caption('Demagogues & Democracy')
@@ -30,7 +30,7 @@ def main():
     mouseClicked = False
 
     #Main Character Values
-    mainCharList = [(5,3,7), (5,5,5), (2, 3, 10)]
+    mainCharList = [(10, 4), (17, 2), (15, 3)]
 
     #scene switching variable
     gameState = 'title'
@@ -43,7 +43,12 @@ def main():
     team = []
 
     #Enemy Team
-    enemyTeam = ['b1', 'b2', 'b3']
+    enemyStats = [('b1', 19, 2), ('b2', 13, 3), ('b3', 11, 4)]
+    enemyTeam = []
+    for a in enemyStats:
+        createCharacter = Character(a[0], a[1], a[2])
+        enemyTeam.append(createCharacter)
+    print(enemyTeam[0].name)
 
     #Location of Campaign
     campLoc = 'Harrisburg'
@@ -58,12 +63,18 @@ def main():
     batArea = 'none'
     batAction = 'none'
     combatComplete = False
+    playerScore = 0
+    enemyScore = 0
+
 
     #Primary Game Loop
     while True:
+
         DISPLAYSURF.fill(BLACK)
         if gameState == 'title':
             gameState = titleScene()
+        elif gameState == 'continue':
+            gameState = continueScene()
         elif gameState == 'character select':
             changes = charScene()
             gameState = changes[0]
@@ -75,6 +86,10 @@ def main():
             stafferB = changes[2]
             team = [candidate, stafferA, stafferB]
         elif gameState == 'team':
+            #Resets Values for Combat
+            combatComplete = False
+            playerScore = 0
+            enemyScore = 0
             changes = teamScene(campLoc, support, weeks, team)
             gameState = changes[0]
             team = changes[1]
@@ -84,10 +99,12 @@ def main():
             batArea = changes[1]
             batAction = changes[2]
         elif gameState == 'combat':
-            combatScene(batArea, batAction, team, enemyTeam)
+            changes = combatScene(batArea, batAction, team, enemyTeam, playerScore, enemyScore)
+            playerScore = changes[1]
+            support = changes[3]
+            weeks = changes[4]
             combatComplete = True
-        elif gameState == 'end of week':
-            weekScene()
+            gameState = changes[0]
         elif gameState == 'end':
             endScene()
         else:
@@ -170,7 +187,7 @@ def orderSwap(teamList, a, b):
 
     return teamList
 
-def combatLoop(playerObj, enemyObj):
+def combatLoop(playerObj, enemyObj, eScore, pScore, i):
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
 
     #Player Team Icon
@@ -186,13 +203,41 @@ def combatLoop(playerObj, enemyObj):
     enemyHealth = 15
     enemyAD = 2
 
+    #internal player score
+    pScoreText = f"Player Score: {pScore}"
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
+    playerTextObj = infoFont.render(pScoreText, True, LRED)
+    playerRectObj = playerTextObj.get_rect()
+    playerRectObj.topleft = (100,100)
+
+    #internal enemy score
+    eScoreText = f"Enemy Score: {eScore}"
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
+    enemyTextObj = infoFont.render(eScoreText, True, LRED)
+    enemyRectObj = enemyTextObj.get_rect()
+    enemyRectObj.topleft = (500,100)
+
+    #Round info
+    round = i+1
+    roundText = f"Round {round}"
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
+    roundTextObj = infoFont.render(roundText, True, LRED)
+    roundRectObj = roundTextObj.get_rect()
+    roundRectObj.topleft = (350, 200)
+
+
+
     while True: 
         DISPLAYSURF.fill(BLACK)
+        DISPLAYSURF.blit(playerTextObj, playerRectObj)
+        DISPLAYSURF.blit(enemyTextObj, enemyRectObj)
+        DISPLAYSURF.blit(roundTextObj, roundRectObj)
         PLAYER = [(playerX, playerY), (100, 100), '']
         ENEMY = [(enemyX, enemyY), (100, 100), '']
 
         healthStr = str(playerHealth)
         enemyStr = str(enemyHealth)
+
 
         if playerDirection == 'right':
             if playerHealth > 0 and enemyHealth > 0:
@@ -231,7 +276,55 @@ def combatLoop(playerObj, enemyObj):
     elif playerHealth < 1 and enemyHealth < 1:
         return 'tie'
 
-
+def resultsCalc(area, action, pScore, eScore):
+    supportChange = 0
+    if area == 'areaA' and action == 'actionA':
+        if pScore > eScore:
+            supportChange += 1
+        elif eScore > pScore:
+            supportChange -= 1
+    elif area == 'areaA' and action == 'actionB':
+        if pScore > eScore:
+            supportChange += 2
+        elif eScore > pScore:
+            supportChange -= 2
+    elif area == 'areaA' and action == 'actionC':
+        if pScore > eScore:
+            supportChange += 3
+        elif eScore > pScore:
+            supportChange -= 3
+    elif area == 'areaB' and action == 'actionA':
+        if pScore > eScore:
+            supportChange += .5
+        elif eScore > pScore:
+            supportChange -= .5
+    elif area == 'areaB' and action == 'actionB':
+        if pScore > eScore:
+            supportChange += 1.5
+        elif eScore > pScore:
+            supportChange -= 1.5
+    elif area == 'areaB' and action == 'actionC':
+        if pScore > eScore:
+            supportChange += 2.5
+        elif eScore > pScore:
+            supportChange -= 2.5
+    elif area == 'areaC' and action == 'actionA':
+        if pScore > eScore:
+            supportChange += 2
+        elif eScore > pScore:
+            supportChange -= 2
+    elif area == 'areaC' and action == 'actionB':
+        if pScore > eScore:
+            supportChange += 3
+        elif eScore > pScore:
+            supportChange -= 3
+    elif area == 'areaC' and action == 'actionC':
+        if pScore > eScore:
+            supportChange += 4
+        elif eScore > pScore:
+            supportChange -= 4
+    
+    return supportChange
 
 def titleScene():
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
@@ -251,7 +344,7 @@ def titleScene():
     buttonList.append(STARTBUTTON)
 
     #Continue Button, NOT YET FUNCTIONAL
-    CONTINUEBUTTON = [(400,380), (240, 80), 'title']
+    CONTINUEBUTTON = [(400,380), (240, 80), 'continue']
     createButton(BUTTONFONT, "Continue", BLACK, LRED, CONTINUEBUTTON[0], CONTINUEBUTTON[1])
     buttonList.append(CONTINUEBUTTON)
 
@@ -263,7 +356,27 @@ def titleScene():
             else:
                 newState = 'title'
     return newState
-        
+
+def continueScene():
+    newState = 'continue'
+    fontObj = pygame.font.Font('freesansbold.ttf', 24)
+    textSurfaceObj = fontObj.render('This has not yet been implemented.', True, LRED)
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (400, 150)
+
+    textSurfaceObj2 = fontObj.render('Click anywhere to return to title screen.', True, LRED)
+    textRectObj2 = textSurfaceObj2.get_rect()
+    textRectObj2.center = (400, 250)
+
+    DISPLAYSURF.fill(BLACK)
+    DISPLAYSURF.blit(textSurfaceObj, textRectObj)
+    DISPLAYSURF.blit(textSurfaceObj2, textRectObj2)
+
+    if mouseClicked == True:
+        newState = 'title'
+    
+    return newState
+
 def charScene():
 
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
@@ -601,7 +714,6 @@ def areaScene():
             holder = clickCheck(button, mX, mY)
             if holder != 'oops':
                 area = holder
-                print(area)
                 break
         
         for button in actionbuttonList:
@@ -636,28 +748,87 @@ def areaScene():
     return newState, area, action
 
 
-def combatScene(area, action, playerTeam, eTeam):
+def combatScene(area, action, playerTeam, eTeam, playerScore, enemyScore):
+
+    BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
+    newState = 'combat'
     areaMod = 0
     actMod = 0
     itr = 0
-    playerScore = 0
-    enemyScore = 0
     result = ''
+    eScore = enemyScore
+    pScore = playerScore
+    newWeeks = weeks
+    newSupport = support
+
     if combatComplete == False:
+        newWeeks = weeks - 1
         for a in playerTeam:
-            result = combatLoop(a, eTeam[itr])
+            result = combatLoop(a, eTeam[itr], eScore, pScore, itr)
             if result == 'player':
-                playerScore += 1
+                pScore += 1
             elif result == 'enemy':
-                enemyScore += 1
+                eScore += 1
             elif result == 'tie':
                 pass
             itr += 1
-            print(a)
+
+    #score Text
+    pScoreText = f"Player Score: {playerScore}"
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
+    playerTextObj = infoFont.render(pScoreText, True, LRED)
+    playerRectObj = playerTextObj.get_rect()
+    playerRectObj.topleft = (100,100)
+
+    eScoreText = f"Enemy Score: {enemyScore}"
+    enemyTextObj = infoFont.render(eScoreText, True, LRED)
+    enemyRectObj = enemyTextObj.get_rect()
+    enemyRectObj.topleft = (500,100)
+
+    #Results Text
+    resultsText = "Results"
+    resultsTextObj = infoFont.render(resultsText, True, LRED)
+    resultsRectObj = resultsTextObj.get_rect()
+    resultsRectObj.topleft = (350, 200)
+
+    supScore = resultsCalc(area, action, pScore, eScore)
+    scoreText = str(supScore)
+    supScoreText = "Support: " + scoreText
+    supTextObj = infoFont.render(supScoreText, True, LRED)
+    supRectObj = supTextObj.get_rect()
+    supRectObj.topleft = (350, 250)
+
+    weeksText = f"Weeks Left: {newWeeks}"
+    weeksTextObj = infoFont.render(weeksText, True, LRED)
+    weeksRectObj = weeksTextObj.get_rect()
+    weeksRectObj.topleft = (350, 300)
+
+    #Next Button
+    NEXTBUTTON = [(400, 500), (240, 80), 'place holder']
+    createButton(BUTTONFONT, 'Next', BLACK, LRED, NEXTBUTTON[0], NEXTBUTTON[1])
 
 
-def weekScene():
-    a = 0
+    DISPLAYSURF.blit(playerTextObj, playerRectObj)
+    DISPLAYSURF.blit(enemyTextObj, enemyRectObj)
+    DISPLAYSURF.blit(resultsTextObj, resultsRectObj)
+    DISPLAYSURF.blit(supTextObj, supRectObj)
+    DISPLAYSURF.blit(weeksTextObj, weeksRectObj)
+
+    #event handler
+    if mouseClicked == True:
+        newState = clickCheck(NEXTBUTTON, mX, mY)
+        if newState != 'oops':
+            newSupport = supScore + support
+            if newWeeks > 0:
+                newState = 'team'
+            elif newWeeks == 0:
+                newState = 'end'
+        else: newState = 'combat'
+
+    
+
+    return newState, pScore, eScore, newSupport, newWeeks
+
 
 def endScene():
     a = 0
