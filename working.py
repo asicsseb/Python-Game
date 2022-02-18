@@ -29,8 +29,9 @@ def main():
     mY = 0
     mouseClicked = False
 
-    #Main Character Values
-    mainCharList = [(10, 4), (17, 2), (15, 3)]
+    #Character Values
+    mainCharList = [['Matt', 10, 4], ['Arnie', 17, 2], ['Jed', 15, 3]]
+    stafferList = [['Josh', 8, 4], ['Toby', 13, 2], ['Sam', 10, 3], ['C.J.', 9, 4], ['Donna', 10, 3], ['Kate', 18, 2], ['Matt', 10, 4], ['Arnie', 17, 2], ['Jed', 15, 3]]
 
     #scene switching variable
     gameState = 'title'
@@ -42,13 +43,15 @@ def main():
 
     team = []
 
+    #temporary name while I work out object functionality
+    tempTeam = []
+    playerTeam = []
+    teamBuilt = False
+
     #Enemy Team
-    enemyStats = [('b1', 19, 2), ('b2', 13, 3), ('b3', 11, 4)]
+    enemyStats = [('b1', 19, 2), ('b2', 12, 2), ('b3', 9, 3)]
     enemyTeam = []
-    for a in enemyStats:
-        createCharacter = Character(a[0], a[1], a[2])
-        enemyTeam.append(createCharacter)
-    print(enemyTeam[0].name)
+    populateTeam(enemyStats, enemyTeam)
 
     #Location of Campaign
     campLoc = 'Harrisburg'
@@ -85,22 +88,42 @@ def main():
             stafferA = changes[1]
             stafferB = changes[2]
             team = [candidate, stafferA, stafferB]
+
+
+
         elif gameState == 'team':
+            if teamBuilt == False:
+                itr = 0
+                for c in team:
+                    if c != 'none':
+                        pH = searchFunction(stafferList, c)
+                        if tempTeam == []:
+                            tempTeam.append(pH)
+                        else:
+                            if pH in tempTeam:
+                                    pass
+                            else:
+                                tempTeam.append(pH)
+
+                populateTeam(tempTeam, playerTeam)
+
+            teamBuilt = True
             #Resets Values for Combat
             combatComplete = False
             playerScore = 0
             enemyScore = 0
-            changes = teamScene(campLoc, support, weeks, team)
+            changes = teamScene(campLoc, support, weeks, playerTeam)
             gameState = changes[0]
-            team = changes[1]
+            tempTeam = changes[1]
         elif gameState == 'area':
             changes = areaScene()
             gameState = changes[0]
             batArea = changes[1]
             batAction = changes[2]
         elif gameState == 'combat':
-            changes = combatScene(batArea, batAction, team, enemyTeam, playerScore, enemyScore)
+            changes = combatScene(batArea, batAction, playerTeam, enemyTeam, playerScore, enemyScore)
             playerScore = changes[1]
+            enemyScore = changes[2]
             support = changes[3]
             weeks = changes[4]
             combatComplete = True
@@ -123,6 +146,17 @@ def main():
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
+def populateTeam(listStats, emptyList):
+    for a in listStats:
+        createCharacter = Character(a[0], a[1], a[2])
+        emptyList.append(createCharacter)
+
+#traverses list of characters, and returns stats of character as tuple
+def searchFunction(list, str):
+    for a in list:
+        if a[0] == str:
+            return a
 
 
 def createButton(font, text, textColor, buttonColor, center, whRect):
@@ -194,14 +228,14 @@ def combatLoop(playerObj, enemyObj, eScore, pScore, i):
     playerX = 110
     playerY = 300
     playerDirection = 'right'
-    playerHealth = 15
-    playerAD = 3
+    playerHealth = playerObj.health
+    playerAD = playerObj.str
 
     #Enemy Team Icon
     enemyX = 670
     enemyY = 300
-    enemyHealth = 15
-    enemyAD = 2
+    enemyHealth = enemyObj.health
+    enemyAD = enemyObj.str
 
     #internal player score
     pScoreText = f"Player Score: {pScore}"
@@ -225,6 +259,11 @@ def combatLoop(playerObj, enemyObj, eScore, pScore, i):
     roundRectObj = roundTextObj.get_rect()
     roundRectObj.topleft = (350, 200)
 
+    #matchup info
+    matchupText = f"{playerObj.name} vs. {enemyObj.name}"
+    matchupTextObj = infoFont.render(matchupText, True, LRED)
+    matchupRectObj = matchupTextObj.get_rect()
+    matchupRectObj.center = (400, 250)
 
 
     while True: 
@@ -232,6 +271,7 @@ def combatLoop(playerObj, enemyObj, eScore, pScore, i):
         DISPLAYSURF.blit(playerTextObj, playerRectObj)
         DISPLAYSURF.blit(enemyTextObj, enemyRectObj)
         DISPLAYSURF.blit(roundTextObj, roundRectObj)
+        DISPLAYSURF.blit(matchupTextObj, matchupRectObj)
         PLAYER = [(playerX, playerY), (100, 100), '']
         ENEMY = [(enemyX, enemyY), (100, 100), '']
 
@@ -382,6 +422,7 @@ def charScene():
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
     cbuttonList = []
     newState = 'character select'
+    infoFont = pygame.font.Font('freesansbold.ttf', 24)
     #Character Selection
     fontObj = pygame.font.Font('freesansbold.ttf', 48)
     textSurfaceObj = fontObj.render('Character Select', True, LRED)
@@ -391,25 +432,24 @@ def charScene():
     DISPLAYSURF.fill(BLACK)
     DISPLAYSURF.blit(textSurfaceObj, textRectObj)
 
-    itr = 0
     x = 400
     y = 140
 
-    CHARABUTTON = [(x-120,y), (100, 100), 'charA']
-    CHARBBUTTON = [(x, y), (100, 100), 'charB']
-    CHARCBUTTON = [(x+120, y), (100, 100), 'charC']
+    CHARABUTTON = [(x-120,y), (100, 100), 'Matt']
+    CHARBBUTTON = [(x, y), (100, 100), 'Arnie']
+    CHARCBUTTON = [(x+120, y), (100, 100), 'Jed']
 
 
     selection = candidate
     selectionFrame = [(400, 350), (100,100), ' ']
 
-    createButton(BUTTONFONT, 'Char A', BLACK, LRED, CHARABUTTON[0], CHARABUTTON[1])
+    createButton(BUTTONFONT, mainCharList[0][0], BLACK, LRED, CHARABUTTON[0], CHARABUTTON[1])
     cbuttonList.append(CHARABUTTON)
 
-    createButton(BUTTONFONT, 'Char B', BLACK, LRED, CHARBBUTTON[0], CHARBBUTTON[1])
+    createButton(BUTTONFONT, mainCharList[1][0], BLACK, LRED, CHARBBUTTON[0], CHARBBUTTON[1])
     cbuttonList.append(CHARBBUTTON)
 
-    createButton(BUTTONFONT, 'Char C', BLACK, LRED, CHARCBUTTON[0], CHARCBUTTON[1])
+    createButton(BUTTONFONT, mainCharList[2][0], BLACK, LRED, CHARCBUTTON[0], CHARCBUTTON[1])
     cbuttonList.append(CHARCBUTTON)
 
 
@@ -433,14 +473,47 @@ def charScene():
             pass
         else: newState = 'character select'
 
-    if selection == 'charA':
-        selectionFrame[2]= 'Char A'
-    elif selection == 'charB':
-        selectionFrame[2]= 'Char B'
-    elif selection == 'charC':
-        selectionFrame[2]= 'Char C'
+    if selection == 'Matt':
+        selectionFrame[2]= mainCharList[0][0]
+        #Health
+        healthTextObj = infoFont.render(f'Health: {mainCharList[0][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (200, 300)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #Str
+        strTextObj = infoFont.render(f'Strength: {mainCharList[0][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (200, 350)
+        DISPLAYSURF.blit(strTextObj, strRectObj)        
+    elif selection == 'Arnie':
+        selectionFrame[2]= mainCharList[1][0]
+        #Health
+        healthTextObj = infoFont.render(f'Health: {mainCharList[1][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (200, 300)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #Str
+        strTextObj = infoFont.render(f'Strength: {mainCharList[1][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (200, 350)
+        DISPLAYSURF.blit(strTextObj, strRectObj)                
+    elif selection == 'Jed':
+        selectionFrame[2]= mainCharList[2][0]
+        #Health
+        healthTextObj = infoFont.render(f'Health: {mainCharList[2][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (200, 300)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #Str
+        strTextObj = infoFont.render(f'Strength: {mainCharList[2][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (200, 350)
+        DISPLAYSURF.blit(strTextObj, strRectObj)        
 
     createButton(BUTTONFONT, selectionFrame[2], BLACK, LRED, selectionFrame[0], selectionFrame[1])
+
+
+
 
     main.mouseClicked = False
     return newState, selection
@@ -465,13 +538,13 @@ def draftScene():
     y1 = 140
     y2 = 260
 
-    STAFFABUTTON = [(x-120,y1), (100, 100), 'staffA']
-    STAFFBBUTTON = [(x, y1), (100, 100), 'staffB']
-    STAFFCBUTTON = [(x+120, y1), (100, 100), 'staffC']
+    STAFFABUTTON = [(x-120,y1), (100, 100), 'Toby']
+    STAFFBBUTTON = [(x, y1), (100, 100), 'Josh']
+    STAFFCBUTTON = [(x+120, y1), (100, 100), 'Sam']
 
-    STAFFDBUTTON = [(x-120,y2), (100, 100), 'staffD']
-    STAFFEBUTTON = [(x,y2), (100, 100), 'staffE']
-    STAFFFBUTTON = [(x+120,y2), (100, 100), 'staffF']
+    STAFFDBUTTON = [(x-120,y2), (100, 100), 'C.J.']
+    STAFFEBUTTON = [(x,y2), (100, 100), 'Donna']
+    STAFFFBUTTON = [(x+120,y2), (100, 100), 'Kate']
 
 
     selection = candidate
@@ -481,22 +554,22 @@ def draftScene():
     staffFrame1 = [(x, 380), (100,100), ' ']
     staffFrame2 = [(x+120, 380), (100, 100),' ']
 
-    createButton(BUTTONFONT, 'Staff A', BLACK, LRED, STAFFABUTTON[0], STAFFABUTTON[1])
+    createButton(BUTTONFONT, 'Toby', BLACK, LRED, STAFFABUTTON[0], STAFFABUTTON[1])
     cbuttonList1.append(STAFFABUTTON)
 
-    createButton(BUTTONFONT, 'Staff B', BLACK, LRED, STAFFBBUTTON[0], STAFFBBUTTON[1])
+    createButton(BUTTONFONT, 'Josh', BLACK, LRED, STAFFBBUTTON[0], STAFFBBUTTON[1])
     cbuttonList1.append(STAFFBBUTTON)
 
-    createButton(BUTTONFONT, 'Staff C', BLACK, LRED, STAFFCBUTTON[0], STAFFCBUTTON[1])
+    createButton(BUTTONFONT, 'Sam', BLACK, LRED, STAFFCBUTTON[0], STAFFCBUTTON[1])
     cbuttonList1.append(STAFFCBUTTON)
 
-    createButton(BUTTONFONT, 'Staff D', BLACK, LRED, STAFFDBUTTON[0], STAFFDBUTTON[1])
+    createButton(BUTTONFONT, 'C.J.', BLACK, LRED, STAFFDBUTTON[0], STAFFDBUTTON[1])
     cbuttonList2.append(STAFFDBUTTON)
 
-    createButton(BUTTONFONT, 'Staff E', BLACK, LRED, STAFFEBUTTON[0], STAFFEBUTTON[1])
+    createButton(BUTTONFONT, 'Donna', BLACK, LRED, STAFFEBUTTON[0], STAFFEBUTTON[1])
     cbuttonList2.append(STAFFEBUTTON)
 
-    createButton(BUTTONFONT, 'Staff F', BLACK, LRED, STAFFFBUTTON[0], STAFFFBUTTON[1])
+    createButton(BUTTONFONT, 'Kate', BLACK, LRED, STAFFFBUTTON[0], STAFFFBUTTON[1])
     cbuttonList2.append(STAFFFBUTTON)
 
 
@@ -525,26 +598,26 @@ def draftScene():
             pass
         else: newState = 'draft'
 
-    if selection == 'charA':
-        selectionFrame[2]= 'Char A'
-    elif selection == 'charB':
-        selectionFrame[2]= 'Char B'
-    elif selection == 'charC':
-        selectionFrame[2]= 'Char C'
+    if selection == 'Matt':
+        selectionFrame[2]= 'Matt'
+    elif selection == 'Arnie':
+        selectionFrame[2]= 'Arnie'
+    elif selection == 'Jed':
+        selectionFrame[2]= 'Jed'
 
-    if staff1 == 'staffA':
-        staffFrame1[2]= 'Staff A'
-    elif staff1 == 'staffB':
-        staffFrame1[2]= 'Staff B'
-    elif staff1 == 'staffC':
-        staffFrame1[2]= 'Staff C'
+    if staff1 == 'Toby':
+        staffFrame1[2]= 'Toby'
+    elif staff1 == 'Josh':
+        staffFrame1[2]= 'Josh'
+    elif staff1 == 'Sam':
+        staffFrame1[2]= 'Sam'
     
-    if staff2 == 'staffD':
-        staffFrame2[2]= 'Staff D'
-    elif staff2 == 'staffE':
-        staffFrame2[2]= 'Staff E'
-    elif staff2 == 'staffF':
-        staffFrame2[2]= 'Staff F'
+    if staff2 == 'C.J.':
+        staffFrame2[2]= 'C.J.'
+    elif staff2 == 'Donna':
+        staffFrame2[2]= 'Donna'
+    elif staff2 == 'Kate':
+        staffFrame2[2]= 'Kate'
 
     createButton(BUTTONFONT, selectionFrame[2], BLACK, LRED, selectionFrame[0], selectionFrame[1])
     createButton(BUTTONFONT, staffFrame1[2], BLACK, LRED, staffFrame1[0], staffFrame1[1])
@@ -555,7 +628,6 @@ def draftScene():
 
 def teamScene(loc, raceDiff, weeks, teamList):
     newState = 'team'
-
     #Staff Selection Title
     fontObj = pygame.font.Font('freesansbold.ttf', 48)
     textSurfaceObj = fontObj.render('Campaign HQ', True, LRED)
@@ -586,9 +658,9 @@ def teamScene(loc, raceDiff, weeks, teamList):
     x = 400
     y = 300
 
-    teamSpot1 = [(x-200,y), (100, 100), teamList[0]]
-    teamSpot2 = [(x, y), (100, 100), teamList[1]]
-    teamSpot3 = [(x+200, y), (100, 100), teamList[2]]
+    teamSpot1 = [(x-200,y), (100, 100), teamList[0].name]
+    teamSpot2 = [(x, y), (100, 100), teamList[1].name]
+    teamSpot3 = [(x+200, y), (100, 100), teamList[2].name]
     teambuttonList = []
 
 
@@ -752,8 +824,6 @@ def combatScene(area, action, playerTeam, eTeam, playerScore, enemyScore):
 
     BUTTONFONT = pygame.font.Font('freesansbold.ttf', 26)
     newState = 'combat'
-    areaMod = 0
-    actMod = 0
     itr = 0
     result = ''
     eScore = enemyScore
