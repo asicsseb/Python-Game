@@ -18,7 +18,7 @@ DRED = (255, 0, 0)
 
 
 def main():
-    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, weeks, candidate, stafferA, stafferB, team, support, batArea, batAction, enemyTeam, combatComplete, playerScore, enemyScore
+    global DISPLAYSURF, FPSCLOCK, mouseClicked, mX, mY, gameState, mainCharList, stafferList, weeks, candidate, stafferA, stafferB, team, support, batArea, batAction, enemyTeam, combatComplete, playerScore, enemyScore
     pygame.init()
     DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
     pygame.display.set_caption('Demagogues & Democracy')
@@ -30,8 +30,8 @@ def main():
     mouseClicked = False
 
     #Character Values
-    mainCharList = [['Matt', 10, 4], ['Arnie', 17, 2], ['Jed', 15, 3]]
-    stafferList = [['Josh', 8, 4], ['Toby', 13, 2], ['Sam', 10, 3], ['C.J.', 9, 4], ['Donna', 10, 3], ['Kate', 18, 2], ['Matt', 10, 4], ['Arnie', 17, 2], ['Jed', 15, 3]]
+    mainCharList = [['Matt', 6, 4, 2, 1], ['Arnie', 8, 2, 1, 3], ['Jed', 7, 3, 2, 2]]
+    stafferList = [['Toby', 7, 2, 2, 2], ['Josh', 5, 4, 1, 1], ['Sam', 5, 2, 1, 3], ['C.J.', 5, 1, 1, 4], ['Donna', 6, 3, 1, 2], ['Kate', 9, 1, 1, 1]] + mainCharList
 
     #scene switching variable
     gameState = 'title'
@@ -49,7 +49,7 @@ def main():
     teamBuilt = False
 
     #Enemy Team
-    enemyStats = [('b1', 19, 2), ('b2', 12, 2), ('b3', 9, 3)]
+    enemyStats = [('b1', 10, 2, 2, 1), ('b2', 6, 2, 1, 2), ('b3', 5, 1, 1, 3)]
     enemyTeam = []
     populateTeam(enemyStats, enemyTeam)
 
@@ -149,7 +149,7 @@ def main():
 
 def populateTeam(listStats, emptyList):
     for a in listStats:
-        createCharacter = Character(a[0], a[1], a[2])
+        createCharacter = Character(a[0], a[1], a[2], a[3], a[4])
         emptyList.append(createCharacter)
 
 #traverses list of characters, and returns stats of character as tuple
@@ -229,13 +229,13 @@ def combatLoop(playerObj, enemyObj, eScore, pScore, i):
     playerY = 300
     playerDirection = 'right'
     playerHealth = playerObj.health
-    playerAD = playerObj.str
+    playerInt = playerObj.int
 
     #Enemy Team Icon
     enemyX = 670
     enemyY = 300
     enemyHealth = enemyObj.health
-    enemyAD = enemyObj.str
+    enemyInt = enemyObj.int
 
     #internal player score
     pScoreText = f"Player Score: {pScore}"
@@ -284,8 +284,8 @@ def combatLoop(playerObj, enemyObj, eScore, pScore, i):
                 playerX += 5
                 enemyX -= 5
                 if playerX == 340:
-                    playerHealth -= enemyAD
-                    enemyHealth -= playerAD
+                    playerHealth -= enemyInt
+                    enemyHealth -= playerInt
                     if playerHealth > 0 and enemyHealth > 0:
                         playerDirection = 'left'
         elif playerDirection == 'left':
@@ -478,37 +478,69 @@ def charScene():
         #Health
         healthTextObj = infoFont.render(f'Health: {mainCharList[0][1]}', True, LBLUE)
         healthRectObj = healthTextObj.get_rect()
-        healthRectObj.center = (200, 300)
+        healthRectObj.center = (200, 220)
         DISPLAYSURF.blit(healthTextObj, healthRectObj)
-        #Str
-        strTextObj = infoFont.render(f'Strength: {mainCharList[0][2]}', True, LBLUE)
+        #INT
+        strTextObj = infoFont.render(f'INT: {mainCharList[0][2]}', True, LBLUE)
         strRectObj = strTextObj.get_rect()
-        strRectObj.center = (200, 350)
-        DISPLAYSURF.blit(strTextObj, strRectObj)        
+        strRectObj.center = (200, 270)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {mainCharList[0][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (200, 320)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {mainCharList[0][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (200, 370)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
+
     elif selection == 'Arnie':
         selectionFrame[2]= mainCharList[1][0]
         #Health
         healthTextObj = infoFont.render(f'Health: {mainCharList[1][1]}', True, LBLUE)
         healthRectObj = healthTextObj.get_rect()
-        healthRectObj.center = (200, 300)
+        healthRectObj.center = (200, 220)
         DISPLAYSURF.blit(healthTextObj, healthRectObj)
-        #Str
-        strTextObj = infoFont.render(f'Strength: {mainCharList[1][2]}', True, LBLUE)
+        #INT
+        strTextObj = infoFont.render(f'INT: {mainCharList[1][2]}', True, LBLUE)
         strRectObj = strTextObj.get_rect()
-        strRectObj.center = (200, 350)
-        DISPLAYSURF.blit(strTextObj, strRectObj)                
+        strRectObj.center = (200, 270)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {mainCharList[1][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (200, 320)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {mainCharList[1][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (200, 370)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)        
+
     elif selection == 'Jed':
         selectionFrame[2]= mainCharList[2][0]
         #Health
         healthTextObj = infoFont.render(f'Health: {mainCharList[2][1]}', True, LBLUE)
         healthRectObj = healthTextObj.get_rect()
-        healthRectObj.center = (200, 300)
+        healthRectObj.center = (200, 220)
         DISPLAYSURF.blit(healthTextObj, healthRectObj)
-        #Str
-        strTextObj = infoFont.render(f'Strength: {mainCharList[2][2]}', True, LBLUE)
+        #INT
+        strTextObj = infoFont.render(f'INT: {mainCharList[2][2]}', True, LBLUE)
         strRectObj = strTextObj.get_rect()
-        strRectObj.center = (200, 350)
-        DISPLAYSURF.blit(strTextObj, strRectObj)        
+        strRectObj.center = (200, 270)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {mainCharList[2][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (200, 320)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {mainCharList[2][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (200, 370)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)        
 
     createButton(BUTTONFONT, selectionFrame[2], BLACK, LRED, selectionFrame[0], selectionFrame[1])
 
@@ -533,7 +565,6 @@ def draftScene():
     DISPLAYSURF.fill(BLACK)
     DISPLAYSURF.blit(textSurfaceObj, textRectObj)
 
-    itr = 0
     x = 400
     y1 = 140
     y2 = 260
@@ -547,12 +578,12 @@ def draftScene():
     STAFFFBUTTON = [(x+120,y2), (100, 100), 'Kate']
 
 
-    selection = candidate
+
     staff1 = stafferA
     staff2 = stafferB
-    selectionFrame = [(x-120, 380), (100,100), ' ']
-    staffFrame1 = [(x, 380), (100,100), ' ']
-    staffFrame2 = [(x+120, 380), (100, 100),' ']
+
+    staffFrame1 = [(x-80, 380), (100,100), ' ']
+    staffFrame2 = [(x+80, 380), (100, 100),' ']
 
     createButton(BUTTONFONT, 'Toby', BLACK, LRED, STAFFABUTTON[0], STAFFABUTTON[1])
     cbuttonList1.append(STAFFABUTTON)
@@ -598,28 +629,151 @@ def draftScene():
             pass
         else: newState = 'draft'
 
-    if selection == 'Matt':
-        selectionFrame[2]= 'Matt'
-    elif selection == 'Arnie':
-        selectionFrame[2]= 'Arnie'
-    elif selection == 'Jed':
-        selectionFrame[2]= 'Jed'
+
+    infoFont = pygame.font.Font('freesansbold.ttf', 18)
+    s1TextObj = infoFont.render('Pick 1 From Each Row', True, LBLUE)
+    s1RectObj = s1TextObj.get_rect()
+    s1RectObj.topleft = (25, 150)
+    DISPLAYSURF.blit(s1TextObj, s1RectObj)
 
     if staff1 == 'Toby':
         staffFrame1[2]= 'Toby'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[0][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (150, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[0][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (150, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[0][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (150, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[0][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (150, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
     elif staff1 == 'Josh':
         staffFrame1[2]= 'Josh'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[1][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (150, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[1][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (150, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[1][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (150, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[1][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (150, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
+
     elif staff1 == 'Sam':
         staffFrame1[2]= 'Sam'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[2][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (150, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[2][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (150, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[2][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (150, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[2][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (150, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
     
     if staff2 == 'C.J.':
         staffFrame2[2]= 'C.J.'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[3][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (650, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[3][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (650, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[3][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (650, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[3][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (650, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
+
     elif staff2 == 'Donna':
         staffFrame2[2]= 'Donna'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[4][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (650, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[4][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (650, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[4][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (650, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[4][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (650, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
+
     elif staff2 == 'Kate':
         staffFrame2[2]= 'Kate'
+        #Health
+        healthTextObj = infoFont.render(f'Health: {stafferList[5][1]}', True, LBLUE)
+        healthRectObj = healthTextObj.get_rect()
+        healthRectObj.center = (650, 400)
+        DISPLAYSURF.blit(healthTextObj, healthRectObj)
+        #INT
+        strTextObj = infoFont.render(f'INT: {stafferList[5][2]}', True, LBLUE)
+        strRectObj = strTextObj.get_rect()
+        strRectObj.center = (650, 440)
+        DISPLAYSURF.blit(strTextObj, strRectObj)
+        #CHA
+        chaTextObj = infoFont.render(f'CHA: {stafferList[5][3]}', True, LBLUE)
+        chaRectObj = chaTextObj.get_rect()
+        chaRectObj.center = (650, 480)
+        DISPLAYSURF.blit(chaTextObj, chaRectObj)    
+        #FORT
+        fortTextObj = infoFont.render(f'INT: {stafferList[5][4]}', True, LBLUE)
+        fortRectObj = fortTextObj.get_rect()
+        fortRectObj.center = (650, 520)
+        DISPLAYSURF.blit(fortTextObj, fortRectObj)
 
-    createButton(BUTTONFONT, selectionFrame[2], BLACK, LRED, selectionFrame[0], selectionFrame[1])
+
     createButton(BUTTONFONT, staffFrame1[2], BLACK, LRED, staffFrame1[0], staffFrame1[1])
     createButton(BUTTONFONT, staffFrame2[2], BLACK, LRED, staffFrame2[0], staffFrame2[1])
 
@@ -628,6 +782,7 @@ def draftScene():
 
 def teamScene(loc, raceDiff, weeks, teamList):
     newState = 'team'
+    smallFont = pygame.font.Font('freesansbold.ttf', 12)
     #Staff Selection Title
     fontObj = pygame.font.Font('freesansbold.ttf', 48)
     textSurfaceObj = fontObj.render('Campaign HQ', True, LRED)
@@ -663,6 +818,57 @@ def teamScene(loc, raceDiff, weeks, teamList):
     teamSpot3 = [(x+200, y), (100, 100), teamList[2].name]
     teambuttonList = []
 
+    #spot 1 Info
+    s1HealthTextObj = smallFont.render(f'Health: {teamList[0].health}', True, LBLUE)
+    s1HealthRectObj = s1HealthTextObj.get_rect()
+    s1HealthRectObj.center = (x-200, 370)    
+
+    s1IntTextObj = smallFont.render(f'INT: {teamList[0].int}', True, LBLUE)
+    s1IntRectObj = s1IntTextObj.get_rect()
+    s1IntRectObj.center = (x-200, 390)
+
+    s1ChaTextObj = smallFont.render(f'CHA: {teamList[0].cha}', True, LBLUE)
+    s1ChaRectObj = s1ChaTextObj.get_rect()
+    s1ChaRectObj.center = (x-200, 410)
+
+    s1FortTextObj = smallFont.render(f'FORT: {teamList[0].fort}', True, LBLUE)
+    s1FortRectObj = s1FortTextObj.get_rect()
+    s1FortRectObj.center = (x-200, 430)
+
+    #spot 2 info
+    s2HealthTextObj = smallFont.render(f'Health: {teamList[1].health}', True, LBLUE)
+    s2HealthRectObj = s2HealthTextObj.get_rect()
+    s2HealthRectObj.center = (x, 370)    
+
+    s2IntTextObj = smallFont.render(f'INT: {teamList[1].int}', True, LBLUE)
+    s2IntRectObj = s2IntTextObj.get_rect()
+    s2IntRectObj.center = (x, 390)
+
+    s2ChaTextObj = smallFont.render(f'CHA: {teamList[1].cha}', True, LBLUE)
+    s2ChaRectObj = s2ChaTextObj.get_rect()
+    s2ChaRectObj.center = (x, 410)
+
+    s2FortTextObj = smallFont.render(f'FORT: {teamList[1].fort}', True, LBLUE)
+    s2FortRectObj = s2FortTextObj.get_rect()
+    s2FortRectObj.center = (x, 430)
+
+    #spot 3 info 
+    s3HealthTextObj = smallFont.render(f'Health: {teamList[2].health}', True, LBLUE)
+    s3HealthRectObj = s3HealthTextObj.get_rect()
+    s3HealthRectObj.center = (x+200, 370)    
+
+    s3IntTextObj = smallFont.render(f'INT: {teamList[2].int}', True, LBLUE)
+    s3IntRectObj = s3IntTextObj.get_rect()
+    s3IntRectObj.center = (x+200, 390)
+
+    s3ChaTextObj = smallFont.render(f'CHA: {teamList[2].cha}', True, LBLUE)
+    s3ChaRectObj = s3ChaTextObj.get_rect()
+    s3ChaRectObj.center = (x+200, 410)
+
+    s3FortTextObj = smallFont.render(f'FORT: {teamList[2].fort}', True, LBLUE)
+    s3FortRectObj = s3FortTextObj.get_rect()
+    s3FortRectObj.center = (x+200, 430)    
+
 
     leftRightFirst = [(305, y-25), (50,40), 'Swap']
     leftRightSecond = [(505, y-25), (50, 40), 'Swap']
@@ -683,6 +889,21 @@ def teamScene(loc, raceDiff, weeks, teamList):
     DISPLAYSURF.blit(locationTextObj, locationRectObj)
     DISPLAYSURF.blit(supTextObj, supRectObj)
     DISPLAYSURF.blit(weeksTextObj, weeksRectObj)
+
+    DISPLAYSURF.blit(s1HealthTextObj, s1HealthRectObj)
+    DISPLAYSURF.blit(s1IntTextObj, s1IntRectObj)
+    DISPLAYSURF.blit(s1ChaTextObj, s1ChaRectObj)
+    DISPLAYSURF.blit(s1FortTextObj, s1FortRectObj)
+
+    DISPLAYSURF.blit(s2HealthTextObj, s2HealthRectObj)
+    DISPLAYSURF.blit(s2IntTextObj, s2IntRectObj)
+    DISPLAYSURF.blit(s2ChaTextObj, s2ChaRectObj)
+    DISPLAYSURF.blit(s2FortTextObj, s2FortRectObj)
+
+    DISPLAYSURF.blit(s3HealthTextObj, s3HealthRectObj)
+    DISPLAYSURF.blit(s3IntTextObj, s3IntRectObj)
+    DISPLAYSURF.blit(s3ChaTextObj, s3ChaRectObj)
+    DISPLAYSURF.blit(s3FortTextObj, s3FortRectObj)
 
     createButton(BUTTONFONT, teamSpot1[2], BLACK, LRED, teamSpot1[0], teamSpot1[1])
     teambuttonList.append(teamSpot1)
